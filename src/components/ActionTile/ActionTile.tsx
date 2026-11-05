@@ -15,7 +15,6 @@ export type ActionTileProps = {
   testID?: string;
 };
 
-/** Square shortcut tile (Home quick actions). */
 export function ActionTile({
   icon,
   title,

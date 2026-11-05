@@ -5,7 +5,6 @@ import { AppText } from '../../../../components';
 import { spacing } from '../../../../theme';
 import { styles } from './TextLink.styles';
 
-/** "Question? Action" row under auth forms. */
 export function TextLink({
   prompt,
   action,

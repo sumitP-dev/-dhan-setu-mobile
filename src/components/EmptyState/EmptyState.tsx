@@ -16,7 +16,6 @@ export type EmptyStateProps = {
   onAction?: () => void;
 };
 
-/** Centered icon + message for empty lists and features not built yet. */
 export function EmptyState({
   icon,
   title,

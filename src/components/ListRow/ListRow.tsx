@@ -18,7 +18,6 @@ export type ListRowProps = {
   testID?: string;
 };
 
-/** Settings-style row: icon, title, optional subtitle and chevron. */
 export function ListRow({
   title,
   subtitle,

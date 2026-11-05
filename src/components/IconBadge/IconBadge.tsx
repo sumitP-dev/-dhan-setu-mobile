@@ -30,7 +30,6 @@ export type IconBadgeProps = {
   size?: number;
 };
 
-/** An icon on a soft tinted square. Used in tiles, list rows and empty states. */
 export function IconBadge({ icon, tone = 'brand', size = 44 }: IconBadgeProps) {
   const t = TONES[tone];
   return (

@@ -10,40 +10,64 @@ import {
 } from '../../../../components';
 import type { AuthScreenProps } from '../../../../navigation/types';
 import { formatPhone } from '../../../../utils/format';
+import { getApiError } from '../../../../utils/apiError';
 import { formatCountdown, useCountdown } from '../../../../utils/useCountdown';
+import { useSendOtp, useVerifyOtp } from '../../hooks';
 import { otpCodeSchema } from '../../schemas';
 import { AuthHeader } from '../AuthHeader';
-import { NOT_CONNECTED_YET } from '../constants';
 import { styles } from './OtpVerifyScreen.styles';
 
-/** Matches the backend's resend cooldown. */
-const RESEND_SECONDS = 30;
+/** The backend's resend cooldown, used if the server didn't say. */
+const DEFAULT_RESEND_SECONDS = 30;
+
+/** Codes that are about the code itself, shown under the input instead of in a banner. */
+const CODE_ERRORS = new Set(['invalid_otp', 'otp_attempts_exceeded']);
 
 export function OtpVerifyScreen({
   navigation,
   route,
 }: AuthScreenProps<'OtpVerify'>) {
-  const { phone } = route.params;
+  const { phone, purpose, resendAfter } = route.params;
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | undefined>();
-  const [notice, setNotice] = useState<string | null>(null);
-  const countdown = useCountdown(RESEND_SECONDS);
+  const [bannerError, setBannerError] = useState<string | null>(null);
+  const [devOtp, setDevOtp] = useState(route.params.devOtp);
+  const countdown = useCountdown(resendAfter ?? DEFAULT_RESEND_SECONDS);
+  const verifyMutation = useVerifyOtp();
+  const sendOtpMutation = useSendOtp();
 
-  const onVerify = () => {
+  const onVerify = async () => {
     const result = otpCodeSchema.safeParse(code);
     if (!result.success) {
       setError(result.error.issues[0]?.message);
       return;
     }
     setError(undefined);
-    // Calls POST /auth/otp/verify once the API layer is added (Prompt 5).
-    setNotice(NOT_CONNECTED_YET);
+    setBannerError(null);
+    try {
+      // On success the navigator switches to the signed-in screens.
+      await verifyMutation.mutateAsync({ phone, purpose, code: result.data });
+    } catch (verifyError) {
+      const apiError = getApiError(verifyError);
+      if (CODE_ERRORS.has(apiError.code)) {
+        setError(apiError.message);
+      } else {
+        setBannerError(apiError.message);
+      }
+    }
   };
 
-  const onResend = () => {
-    // Calls POST /auth/otp/send once the API layer is added (Prompt 5).
-    setCode('');
-    countdown.restart();
+  const onResend = async () => {
+    setError(undefined);
+    setBannerError(null);
+    try {
+      const otp = await sendOtpMutation.mutateAsync({ phone, purpose });
+      setCode('');
+      setDevOtp(otp.dev_otp);
+      countdown.restart(otp.resend_after);
+    } catch (sendError) {
+      setBannerError(getApiError(sendError).message);
+    }
   };
 
   return (
@@ -55,11 +79,14 @@ export function OtpVerifyScreen({
           title="Verify"
           onPress={onVerify}
           disabled={code.length < 6}
+          loading={verifyMutation.isPending}
         />
       }
     >
       <AuthHeader
-        title="Verify your number"
+        title={
+          purpose === 'login' ? 'Enter your login code' : 'Verify your number'
+        }
         subtitle={
           <>
             Enter the 6-digit code sent to{' '}
@@ -68,8 +95,16 @@ export function OtpVerifyScreen({
         }
       />
       <View style={styles.body}>
-        {notice ? (
-          <Banner tone="info" message={notice} testID="otp-notice" />
+        {bannerError ? (
+          <Banner tone="danger" message={bannerError} testID="otp-error" />
+        ) : null}
+        {__DEV__ && devOtp ? (
+          <Banner
+            tone="info"
+            title="Development build"
+            message={`Your code is ${devOtp}`}
+            testID="otp-dev-code"
+          />
         ) : null}
         <OtpInput
           value={code}
@@ -89,6 +124,7 @@ export function OtpVerifyScreen({
               fullWidth={false}
               leftIcon="refresh"
               onPress={onResend}
+              loading={sendOtpMutation.isPending}
             />
           ) : (
             <AppText

@@ -31,7 +31,6 @@ export type BannerProps = {
   testID?: string;
 };
 
-/** Inline message box for errors, warnings and confirmations. */
 export function Banner({ tone = 'info', title, message, testID }: BannerProps) {
   const t = TONES[tone];
   return (

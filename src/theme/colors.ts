@@ -42,7 +42,6 @@ const palette = {
 } as const;
 
 export const colors = {
-  // Brand
   brand: palette.sky600,
   brandStrong: palette.navy900,
   brandPressed: palette.navy950,
@@ -53,13 +52,11 @@ export const colors = {
   accentStrong: palette.blue800,
   accentSoft: palette.blue50,
 
-  // Surfaces
   background: '#F5F8FC',
   surface: palette.white,
   surfaceMuted: palette.slate100,
   overlay: 'rgba(15, 23, 42, 0.5)',
 
-  // Text
   textPrimary: palette.slate900,
   textSecondary: palette.slate600,
   textMuted: palette.slate500,
@@ -67,7 +64,6 @@ export const colors = {
   textInverse: palette.white,
   textLink: palette.blue700,
 
-  // Lines
   border: palette.slate200,
   borderStrong: palette.slate300,
   borderFocus: palette.sky600,
@@ -83,7 +79,6 @@ export const colors = {
   info: palette.blue700,
   infoSoft: palette.blue50,
 
-  // States
   disabled: palette.slate200,
   disabledText: palette.slate400,
   ripple: 'rgba(15, 23, 42, 0.08)',

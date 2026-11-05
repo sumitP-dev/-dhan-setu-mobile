@@ -88,9 +88,13 @@ export const registerSchema = z.object({
   password: newPasswordSchema,
 });
 
+export const otpLoginSchema = z.object({ phone: mobileSchema });
+
 export const otpVerifySchema = z.object({ code: otpCodeSchema });
 
 export type LoginFormInput = z.input<typeof loginSchema>;
 export type LoginFormValues = z.output<typeof loginSchema>;
 export type RegisterFormInput = z.input<typeof registerSchema>;
 export type RegisterFormValues = z.output<typeof registerSchema>;
+export type OtpLoginFormInput = z.input<typeof otpLoginSchema>;
+export type OtpLoginFormValues = z.output<typeof otpLoginSchema>;

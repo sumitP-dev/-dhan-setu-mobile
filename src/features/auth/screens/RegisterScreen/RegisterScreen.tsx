@@ -1,21 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
-import { AppButton, AppText, FormInput, Screen } from '../../../../components';
+import {
+  AppButton,
+  AppText,
+  Banner,
+  FormInput,
+  Screen,
+} from '../../../../components';
 import type { AuthScreenProps } from '../../../../navigation/types';
 import {
   registerSchema,
   type RegisterFormInput,
   type RegisterFormValues,
 } from '../../schemas';
+import { getApiError } from '../../../../utils/apiError';
+import { useRegister } from '../../hooks';
 import { AuthHeader } from '../AuthHeader';
+import { otpVerifyParams } from '../constants';
 import { TextLink } from '../TextLink';
 import { styles } from './RegisterScreen.styles';
 
 export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
-  const { control, handleSubmit, setFocus } = useForm<
+  const [error, setFormError] = useState<string | null>(null);
+  const registerMutation = useRegister();
+  const { control, handleSubmit, setFocus, setError } = useForm<
     RegisterFormInput,
     unknown,
     RegisterFormValues
@@ -24,12 +35,24 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
     defaultValues: { full_name: '', email: '', phone: '', password: '' },
   });
 
-  const onSubmit = handleSubmit(values => {
-    // Calls POST /auth/register first once the API layer is added (Prompt 5).
-    navigation.navigate('OtpVerify', {
-      phone: values.phone,
-      purpose: 'verify_phone',
-    });
+  const onSubmit = handleSubmit(async values => {
+    setFormError(null);
+    try {
+      const { otp } = await registerMutation.mutateAsync(values);
+      navigation.navigate(
+        'OtpVerify',
+        otpVerifyParams(values.phone, 'verify_phone', otp),
+      );
+    } catch (registerError) {
+      const apiError = getApiError(registerError);
+      if (apiError.code === 'email_taken') {
+        setError('email', { message: apiError.message }, { shouldFocus: true });
+      } else if (apiError.code === 'phone_taken') {
+        setError('phone', { message: apiError.message }, { shouldFocus: true });
+      } else {
+        setFormError(apiError.message);
+      }
+    }
   });
 
   return (
@@ -38,7 +61,11 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
       testID="register-screen"
       footer={
         <>
-          <AppButton title="Continue" onPress={() => onSubmit()} />
+          <AppButton
+            title="Continue"
+            onPress={() => onSubmit()}
+            loading={registerMutation.isPending}
+          />
           <TextLink
             prompt="Already have an account?"
             action="Log in"
@@ -52,6 +79,9 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
         subtitle="It takes a minute. We'll verify your mobile number next."
       />
       <View style={styles.form}>
+        {error ? (
+          <Banner tone="danger" message={error} testID="register-error" />
+        ) : null}
         <FormInput
           control={control}
           name="full_name"

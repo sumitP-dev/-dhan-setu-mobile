@@ -4,7 +4,6 @@ import { View } from 'react-native';
 import { AppText } from '../../../../components';
 import { styles } from './AuthHeader.styles';
 
-/** Title + subtitle at the top of each auth screen. */
 export function AuthHeader({
   title,
   subtitle,

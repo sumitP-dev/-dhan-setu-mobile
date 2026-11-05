@@ -9,7 +9,6 @@ export type PageDotsProps = {
   testID?: string;
 };
 
-/** Page indicator for slides. The active page is a wider pill. */
 export function PageDots({ count, index, testID }: PageDotsProps) {
   return (
     <View

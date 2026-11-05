@@ -13,7 +13,6 @@ export type CardProps = {
   testID?: string;
 };
 
-/** White rounded surface. Pressable when onPress is given. */
 export function Card({
   children,
   onPress,

@@ -2,15 +2,22 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { OtpPurpose } from '../api/types';
 
-/** Screens shown while signed out. */
 export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
   Register: undefined;
-  OtpVerify: { phone: string; purpose: OtpPurpose };
+  OtpLogin: undefined;
+  OtpVerify: {
+    /** 10 digits, e.g. "9876543210". */
+    phone: string;
+    purpose: OtpPurpose;
+    /** Seconds before "Resend code" unlocks (from the server's resend_after). */
+    resendAfter?: number;
+    /** The code itself, only when the backend runs with DEBUG=true. Shown in __DEV__. */
+    devOtp?: string;
+  };
 };
 
-/** Screens shown while signed in. */
 export type AppStackParamList = {
   Home: undefined;
   Cards: undefined;

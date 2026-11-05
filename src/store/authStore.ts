@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 
+import { setSessionExpiredHandler } from '../api/client';
+import { queryClient } from '../api/queryClient';
 import type { TokenPair, User } from '../api/types';
-import { getMe } from '../features/auth/api';
+import { getMe, logout as logoutRequest } from '../features/auth/api';
 import { tokenStorage } from '../services/tokenStorage';
 import { getApiError } from '../utils/apiError';
 
@@ -12,15 +14,16 @@ type AuthState = {
   user: User | null;
   /** On app start: restore the session from the keychain, if there is one. */
   bootstrap: () => Promise<void>;
-  /** After a successful login / OTP verification. */
   setSession: (user: User, tokens: TokenPair) => Promise<void>;
   setUser: (user: User) => void;
-  /** Forget the session on this device. (Server-side logout is added in Prompt 5.) */
+  /** Signs out on the server (best effort), then forgets the session on this device. */
+  logout: () => Promise<void>;
+  /** Forgets the session on this device only (e.g. when the server rejected it). */
   clearSession: () => Promise<void>;
 };
 
 /** Who is signed in. The navigator shows the auth or app screens based on `status`. */
-export const useAuthStore = create<AuthState>(set => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   status: 'loading',
   user: null,
 
@@ -53,8 +56,26 @@ export const useAuthStore = create<AuthState>(set => ({
 
   setUser: user => set({ user }),
 
+  logout: async () => {
+    const refreshToken = await tokenStorage.getRefreshToken();
+    if (refreshToken) {
+      try {
+        await logoutRequest(refreshToken);
+      } catch {
+        // Server unreachable: still sign out here; the refresh token expires on its own.
+      }
+    }
+    await get().clearSession();
+  },
+
   clearSession: async () => {
     await tokenStorage.clear();
+    queryClient.clear(); // drop the previous user's cached data
     set({ status: 'unauthenticated', user: null });
   },
 }));
+
+// The API client ends the session when a token refresh is rejected.
+setSessionExpiredHandler(() => {
+  useAuthStore.getState().clearSession();
+});

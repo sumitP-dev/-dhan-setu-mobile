@@ -3,7 +3,6 @@ import type { NativeStackNavigationOptions } from '@react-navigation/native-stac
 
 import { colors, fonts, typography } from '../theme';
 
-/** React Navigation's theme, built from the app theme. */
 export const navigationTheme: Theme = {
   ...DefaultTheme,
   colors: {
@@ -24,7 +23,6 @@ export const navigationTheme: Theme = {
   },
 };
 
-/** Header and transition settings shared by every stack. */
 export const stackScreenOptions: NativeStackNavigationOptions = {
   headerShadowVisible: false,
   headerStyle: { backgroundColor: colors.background },

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
-/** Seconds left until zero, ticking once a second. `restart()` starts it again. */
+/**
+ * Seconds left until zero, ticking once a second. `restart()` starts it again, from
+ * `seconds` or from a new value (e.g. the server's resend_after).
+ */
 export function useCountdown(seconds: number) {
   const [remaining, setRemaining] = useState(seconds);
 
@@ -12,7 +15,10 @@ export function useCountdown(seconds: number) {
     return () => clearTimeout(timer);
   }, [remaining]);
 
-  const restart = useCallback(() => setRemaining(seconds), [seconds]);
+  const restart = useCallback(
+    (from: number = seconds) => setRemaining(from),
+    [seconds],
+  );
 
   return { remaining, isDone: remaining <= 0, restart };
 }

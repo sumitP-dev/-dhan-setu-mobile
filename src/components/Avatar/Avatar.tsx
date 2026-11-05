@@ -16,7 +16,6 @@ export function initialsOf(name: string): string {
   return (first + last).toUpperCase();
 }
 
-/** Round badge with the user's initials. */
 export function Avatar({ name, size = 44 }: AvatarProps) {
   return (
     <View

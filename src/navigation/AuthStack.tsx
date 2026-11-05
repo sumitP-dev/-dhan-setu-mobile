@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import {
   LoginScreen,
+  OtpLoginScreen,
   OtpVerifyScreen,
   RegisterScreen,
   WelcomeScreen,
@@ -25,6 +26,7 @@ export function AuthStack() {
       />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="OtpLogin" component={OtpLoginScreen} />
       <Stack.Screen name="OtpVerify" component={OtpVerifyScreen} />
     </Stack.Navigator>
   );

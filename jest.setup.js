@@ -37,3 +37,12 @@ jest.mock('lottie-react-native', () => {
   });
   return { __esModule: true, default: LottieView };
 });
+
+// React Query keeps finished queries/mutations for 5 minutes using timers, which keeps
+// Jest from exiting. In tests, never schedule that cleanup.
+const { queryClient } = require('./src/api/queryClient');
+const defaults = queryClient.getDefaultOptions();
+queryClient.setDefaultOptions({
+  queries: { ...defaults.queries, gcTime: Infinity },
+  mutations: { ...defaults.mutations, gcTime: Infinity },
+});

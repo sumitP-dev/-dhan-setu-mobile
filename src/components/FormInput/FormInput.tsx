@@ -16,7 +16,6 @@ export type FormInputProps<T extends FieldValues> = Omit<
   control: Control<T>;
 };
 
-/** AppTextInput connected to react-hook-form. Shows the field's validation error. */
 export function FormInput<T extends FieldValues>({
   name,
   control,

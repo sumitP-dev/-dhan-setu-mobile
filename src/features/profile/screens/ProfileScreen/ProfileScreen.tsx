@@ -22,12 +22,12 @@ const ROLE_LABELS = {
 
 export function ProfileScreen(_: AppScreenProps<'Profile'>) {
   const user = useAuthStore(s => s.user);
-  const clearSession = useAuthStore(s => s.clearSession);
+  const logout = useAuthStore(s => s.logout);
 
   const confirmLogout = () =>
     Alert.alert('Log out?', 'You will need to log in again to use Dhan Setu.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Log out', style: 'destructive', onPress: () => clearSession() },
+      { text: 'Log out', style: 'destructive', onPress: () => logout() },
     ]);
 
   return (
