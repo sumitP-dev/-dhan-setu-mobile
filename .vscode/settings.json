@@ -1,0 +1,11 @@
+{
+  // Use the project's TypeScript version, not the one bundled with VS Code.
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "jest.runMode": "on-demand",
+  "files.exclude": { "**/node_modules": true, "android/.gradle": true, "android/app/build": true },
+  "search.exclude": { "**/node_modules": true, "android/app/build": true, "ios/Pods": true }
+}
