@@ -78,6 +78,19 @@ The app expects the backend at `http://10.0.2.2:8000/api/v1` on the Android emul
 alias for your computer's localhost) and `http://localhost:8000/api/v1` on the iOS simulator
 (see `src/config/env.ts`). Start the backend with `--host 0.0.0.0` (see the backend README).
 
+## Payments (Razorpay checkout)
+
+Card payments use Razorpay's own checkout screen (`react-native-razorpay`), wrapped in
+`src/services/razorpayCheckout.ts`. Card numbers and CVVs are typed into Razorpay's screen and
+never reach this app or the backend.
+
+- The app has no Razorpay keys. The backend returns the public key id with each order, and
+  it switches between test and live mode.
+- What checkout reports is only a hint: the app always sends it to the backend, which checks
+  the signature with Razorpay before showing success.
+- Checkout is native, so after installing or updating it, run `cd ios && pod install` and
+  rebuild the app (not just reload Metro).
+
 ## Checks
 
 Run before every commit:

@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   View,
   type StyleProp,
@@ -39,6 +38,13 @@ export function Screen({
   testID,
 }: ScreenProps) {
   const padding = padded ? styles.padded : null;
+  const areaRef = useRef<React.ComponentRef<typeof View>>(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  // KeyboardAvoidingView ignores how far down the screen it starts (e.g. below a
+  // header), so measure that, or the footer ends up behind the keyboard.
+  const measureOffset = () =>
+    areaRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y));
 
   return (
     <SafeAreaView
@@ -46,28 +52,36 @@ export function Screen({
       style={[styles.root, { backgroundColor: background }]}
       testID={testID}
     >
-      <KeyboardAvoidingView
+      <View
+        ref={areaRef}
+        collapsable={false}
         style={styles.root}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        onLayout={measureOffset}
       >
-        {scroll ? (
-          <ScrollView
-            style={styles.root}
-            contentContainerStyle={[
-              styles.scrollContent,
-              padding,
-              contentStyle,
-            ]}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {children}
-          </ScrollView>
-        ) : (
-          <View style={[styles.root, padding, contentStyle]}>{children}</View>
-        )}
-        {footer ? <View style={styles.footer}>{footer}</View> : null}
-      </KeyboardAvoidingView>
+        <KeyboardAvoidingView
+          style={styles.root}
+          behavior="padding"
+          keyboardVerticalOffset={keyboardOffset}
+        >
+          {scroll ? (
+            <ScrollView
+              style={styles.root}
+              contentContainerStyle={[
+                styles.scrollContent,
+                padding,
+                contentStyle,
+              ]}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {children}
+            </ScrollView>
+          ) : (
+            <View style={[styles.root, padding, contentStyle]}>{children}</View>
+          )}
+          {footer ? <View style={styles.footer}>{footer}</View> : null}
+        </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }

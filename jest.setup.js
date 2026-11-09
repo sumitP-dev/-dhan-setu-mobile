@@ -38,6 +38,12 @@ jest.mock('lottie-react-native', () => {
   return { __esModule: true, default: LottieView };
 });
 
+// Razorpay checkout is a native screen; tests set what open() resolves or rejects with.
+jest.mock('react-native-razorpay', () => ({
+  __esModule: true,
+  default: { open: jest.fn() },
+}));
+
 // React Query keeps finished queries/mutations for 5 minutes using timers, which keeps
 // Jest from exiting. In tests, never schedule that cleanup.
 const { queryClient } = require('./src/api/queryClient');
