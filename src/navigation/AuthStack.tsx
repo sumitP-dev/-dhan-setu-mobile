@@ -8,15 +8,18 @@ import {
   RegisterScreen,
   WelcomeScreen,
 } from '../features/auth/screens';
+import { useAppSelector } from '../store';
 import { stackScreenOptions } from './theme';
 import type { AuthStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
+/** The intro slides show only until someone registers or signs in on this device. */
 export function AuthStack() {
+  const hasOnboarded = useAppSelector(s => s.auth.hasOnboarded);
   return (
     <Stack.Navigator
-      initialRouteName="Welcome"
+      initialRouteName={hasOnboarded ? 'Login' : 'Welcome'}
       screenOptions={{ ...stackScreenOptions, title: '' }}
     >
       <Stack.Screen

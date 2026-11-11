@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { useAuthStore } from '../../store/authStore';
+import { completeOnboarding, setSession, useAppDispatch } from '../../store';
 import {
   login,
   register,
@@ -14,17 +14,19 @@ import {
 
 /** Logs in; on success the navigator switches to the signed-in screens. */
 export function useLogin() {
-  const setSession = useAuthStore(s => s.setSession);
+  const dispatch = useAppDispatch();
   return useMutation({
     mutationFn: (body: LoginRequest) => login(body),
-    onSuccess: ({ user, tokens }) => setSession(user, tokens),
+    onSuccess: ({ user, tokens }) => dispatch(setSession({ user, tokens })),
   });
 }
 
 /** Creates a pending account and texts a verify_phone code. Doesn't sign in. */
 export function useRegister() {
+  const dispatch = useAppDispatch();
   return useMutation({
     mutationFn: (body: RegisterRequest) => register(body),
+    onSuccess: () => dispatch(completeOnboarding()),
   });
 }
 
@@ -35,9 +37,9 @@ export function useSendOtp() {
 }
 
 export function useVerifyOtp() {
-  const setSession = useAuthStore(s => s.setSession);
+  const dispatch = useAppDispatch();
   return useMutation({
     mutationFn: (body: OtpVerifyRequest) => verifyOtp(body),
-    onSuccess: ({ user, tokens }) => setSession(user, tokens),
+    onSuccess: ({ user, tokens }) => dispatch(setSession({ user, tokens })),
   });
 }

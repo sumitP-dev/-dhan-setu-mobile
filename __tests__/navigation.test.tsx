@@ -12,8 +12,9 @@ import App from '../App';
 import type { OtpSentResponse, TokenPair, User } from '../src/api/types';
 import * as authApi from '../src/features/auth/api';
 import { navigationRef } from '../src/navigation';
+import { onboardingStorage } from '../src/services/onboardingStorage';
 import { tokenStorage } from '../src/services/tokenStorage';
-import { useAuthStore } from '../src/store/authStore';
+import { reset, store } from '../src/store';
 
 jest.mock('../src/features/auth/api', () => ({
   getMe: jest.fn(),
@@ -86,7 +87,8 @@ beforeEach(async () => {
   jest.clearAllMocks();
   api.logout.mockResolvedValue(undefined);
   await tokenStorage.clear();
-  useAuthStore.setState({ status: 'loading', user: null });
+  await onboardingStorage.reset();
+  store.dispatch(reset());
 });
 
 describe('signed out', () => {
@@ -494,7 +496,7 @@ describe('signed in', () => {
     },
   );
 
-  it('Profile shows the user and logs out to Welcome', async () => {
+  it('Profile shows the user and logs out to Login, not the intro', async () => {
     const user = userEvent.setup();
     const alert = jest.spyOn(Alert, 'alert');
     await renderSignedIn();
@@ -508,8 +510,9 @@ describe('signed in', () => {
     const buttons = alert.mock.calls[0][2] ?? [];
     await act(async () => buttons.find(b => b.text === 'Log out')?.onPress?.());
 
-    expect(await screen.findByTestId('welcome-screen')).toBeOnTheScreen();
-    expect(currentRoute()).toBe('Welcome');
+    expect(await screen.findByTestId('login-screen')).toBeOnTheScreen();
+    expect(currentRoute()).toBe('Login');
+    expect(screen.queryByTestId('welcome-screen')).toBeNull();
     expect(navigationRef.canGoBack()).toBe(false);
     expect(await tokenStorage.getTokens()).toBeNull();
     expect(api.logout).toHaveBeenCalledWith('refresh');
@@ -526,13 +529,13 @@ describe('signed in', () => {
     const buttons = alert.mock.calls[0][2] ?? [];
     await act(async () => buttons.find(b => b.text === 'Log out')?.onPress?.());
 
-    expect(await screen.findByTestId('welcome-screen')).toBeOnTheScreen();
+    expect(await screen.findByTestId('login-screen')).toBeOnTheScreen();
     expect(await tokenStorage.getTokens()).toBeNull();
   });
 });
 
 describe('session restore', () => {
-  it('a rejected session (401) clears tokens and shows Welcome', async () => {
+  it('a rejected session (401) clears tokens and shows Login', async () => {
     await tokenStorage.setTokens({ accessToken: 'old', refreshToken: 'old' });
     mockGetMe.mockRejectedValue(
       Object.assign(new Error('401'), {
@@ -543,7 +546,7 @@ describe('session restore', () => {
 
     await render(<App />);
 
-    expect(await screen.findByTestId('welcome-screen')).toBeOnTheScreen();
+    expect(await screen.findByTestId('login-screen')).toBeOnTheScreen();
     expect(await tokenStorage.getTokens()).toBeNull();
   });
 
@@ -555,7 +558,83 @@ describe('session restore', () => {
 
     await render(<App />);
 
-    expect(await screen.findByTestId('welcome-screen')).toBeOnTheScreen();
+    expect(await screen.findByTestId('login-screen')).toBeOnTheScreen();
     expect(await tokenStorage.getTokens()).not.toBeNull();
+  });
+});
+
+describe('intro slides show only once per device', () => {
+  async function relaunch() {
+    await screen.unmount();
+    store.dispatch(reset());
+    await render(<App />);
+  }
+
+  it('after registering, the next launch opens Login', async () => {
+    const user = userEvent.setup();
+    api.register.mockResolvedValue({
+      user: { ...USER, status: 'pending_verification' },
+      otp: OTP_SENT,
+    });
+    await renderSignedOut();
+    await skipIntro(user);
+    await user.press(
+      inScreen('welcome-screen').getByRole('button', {
+        name: 'Create account',
+      }),
+    );
+    await user.type(screen.getByTestId('register-name'), 'Asha Verma');
+    await user.type(screen.getByTestId('register-email'), 'asha@example.com');
+    await user.type(screen.getByTestId('register-phone'), '9876543210');
+    await user.type(screen.getByTestId('register-password'), 'Secret123');
+    await user.press(
+      inScreen('register-screen').getByRole('button', { name: 'Continue' }),
+    );
+    await screen.findByTestId('otp-screen');
+    expect(await onboardingStorage.isDone()).toBe(true);
+
+    await relaunch();
+    expect(await screen.findByTestId('login-screen')).toBeOnTheScreen();
+    expect(screen.queryByTestId('welcome-screen')).toBeNull();
+  });
+
+  it('a failed registration still shows the intro next time', async () => {
+    const user = userEvent.setup();
+    api.register.mockRejectedValue(apiError(503, 'unavailable', 'Try again'));
+    await renderSignedOut();
+    await skipIntro(user);
+    await user.press(
+      inScreen('welcome-screen').getByRole('button', {
+        name: 'Create account',
+      }),
+    );
+    await user.type(screen.getByTestId('register-name'), 'Asha Verma');
+    await user.type(screen.getByTestId('register-email'), 'asha@example.com');
+    await user.type(screen.getByTestId('register-phone'), '9876543210');
+    await user.type(screen.getByTestId('register-password'), 'Secret123');
+    await user.press(
+      inScreen('register-screen').getByRole('button', { name: 'Continue' }),
+    );
+    expect(await onboardingStorage.isDone()).toBe(false);
+
+    await relaunch();
+    expect(await screen.findByTestId('welcome-screen')).toBeOnTheScreen();
+  });
+
+  it('a signed-out returning user can still create a new account from Login', async () => {
+    const user = userEvent.setup();
+    await onboardingStorage.markDone();
+    await render(<App />);
+
+    await screen.findByTestId('login-screen');
+    await user.press(
+      inScreen('login-screen').getByRole('link', { name: 'Create account' }),
+    );
+    expect(currentRoute()).toBe('Register');
+  });
+
+  it('an existing saved session also skips the intro after logout', async () => {
+    await renderSignedIn();
+    expect(await onboardingStorage.isDone()).toBe(true);
   });
 });

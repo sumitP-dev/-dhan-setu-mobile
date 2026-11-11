@@ -10,7 +10,7 @@ import {
   Screen,
 } from '../../../../components';
 import type { AppScreenProps } from '../../../../navigation/types';
-import { useAuthStore } from '../../../../store/authStore';
+import { logout, useAppDispatch, useAppSelector } from '../../../../store';
 import { formatPhone } from '../../../../utils/format';
 import { styles } from './ProfileScreen.styles';
 
@@ -21,13 +21,17 @@ const ROLE_LABELS = {
 };
 
 export function ProfileScreen(_: AppScreenProps<'Profile'>) {
-  const user = useAuthStore(s => s.user);
-  const logout = useAuthStore(s => s.logout);
+  const user = useAppSelector(s => s.auth.user);
+  const dispatch = useAppDispatch();
 
   const confirmLogout = () =>
     Alert.alert('Log out?', 'You will need to log in again to use Dhan Setu.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Log out', style: 'destructive', onPress: () => logout() },
+      {
+        text: 'Log out',
+        style: 'destructive',
+        onPress: () => dispatch(logout()),
+      },
     ]);
 
   return (

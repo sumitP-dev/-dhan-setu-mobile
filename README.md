@@ -3,13 +3,13 @@
 React Native CLI app (not Expo), TypeScript, Android and iOS. It talks to the backend only
 over HTTP (`/api/v1`); it never imports backend code. The backend is a separate project.
 
-Stack: React Native 0.88, React Navigation (native stack), TanStack React Query, zustand,
+Stack: React Native 0.88, React Navigation (native stack), TanStack React Query, Redux Toolkit,
 axios, react-hook-form + zod, react-native-keychain, lucide icons, Inter font.
 
 ## Layout
 
 ```
-App.tsx                  providers: safe area, React Query, navigation
+App.tsx                  providers: Redux, safe area, React Query, navigation
 src/
   theme/                 colours, typography, spacing/radius/sizes, shadows  <- change the look here
   components/            shared UI: AppText, AppButton, AppTextInput, FormInput, Screen, Card,
@@ -17,8 +17,8 @@ src/
   navigation/            RootNavigator (switches auth/app), AuthStack, AppStack, types, theme
   api/                   axios client, React Query client, API response types
   config/env.ts          backend URL per platform
-  services/              tokenStorage (keychain)
-  store/                 authStore (zustand): who is signed in
+  services/              tokenStorage, onboardingStorage (keychain), razorpayCheckout
+  store/                 Redux Toolkit: store, rootReducer, typed hooks, authSlice
   utils/                 apiError, money/phone formatting, countdown hook
   features/<feature>/    api.ts, hooks.ts, schemas.ts (zod), screens/
     auth/                Welcome, Login, Register, OtpVerify
@@ -77,6 +77,23 @@ npm run ios          # or: iOS simulator (pick one with -- --simulator "iPhone 1
 The app expects the backend at `http://10.0.2.2:8000/api/v1` on the Android emulator (its
 alias for your computer's localhost) and `http://localhost:8000/api/v1` on the iOS simulator
 (see `src/config/env.ts`). Start the backend with `--host 0.0.0.0` (see the backend README).
+
+## State (Redux Toolkit)
+
+`<Provider store={store}>` wraps the whole app in `App.tsx`, so every screen can use it.
+
+- Read state: `const user = useAppSelector(s => s.auth.user);`
+- Change it: `const dispatch = useAppDispatch(); dispatch(logout());`
+- Import both from `src/store`. Use them, not the plain `useSelector`/`useDispatch`, so
+  state is typed.
+- New state: write a slice in `src/store/` (or `features/<feature>/slice.ts`) and add it to
+  `src/store/rootReducer.ts`.
+- What goes where:
+  - Redux holds app state, such as who is signed in.
+  - React Query holds data from the backend, such as cards and payments.
+  - The keychain holds tokens. Never put tokens in Redux.
+- Tests: `renderWithProviders(<Screen />, { preloadedState })` from `testing/` gives each test
+  its own store.
 
 ## Payments (Razorpay checkout)
 

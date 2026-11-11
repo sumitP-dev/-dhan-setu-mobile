@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 import { LoadingView } from '../components';
-import { useAuthStore } from '../store/authStore';
+import { bootstrap, useAppDispatch, useAppSelector } from '../store';
 import { AppStack } from './AppStack';
 import { AuthStack } from './AuthStack';
 
@@ -10,12 +10,12 @@ import { AuthStack } from './AuthStack';
  * after login the back button can't return to the login screens (and vice versa).
  */
 export function RootNavigator() {
-  const status = useAuthStore(s => s.status);
-  const bootstrap = useAuthStore(s => s.bootstrap);
+  const status = useAppSelector(s => s.auth.status);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    bootstrap();
-  }, [bootstrap]);
+    dispatch(bootstrap());
+  }, [dispatch]);
 
   if (status === 'loading') {
     return <LoadingView />;

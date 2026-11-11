@@ -11,13 +11,13 @@ import {
   Screen,
 } from '../../../../components';
 import type { AppScreenProps } from '../../../../navigation/types';
-import { useAuthStore } from '../../../../store/authStore';
+import { useAppSelector } from '../../../../store';
 import { colors, spacing } from '../../../../theme';
 import { firstName, greeting } from '../../../../utils/format';
 import { styles } from './HomeScreen.styles';
 
 export function HomeScreen({ navigation }: AppScreenProps<'Home'>) {
-  const user = useAuthStore(s => s.user);
+  const user = useAppSelector(s => s.auth.user);
   const name = user?.full_name ?? '';
 
   return (
