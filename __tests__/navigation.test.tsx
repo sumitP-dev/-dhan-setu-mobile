@@ -34,6 +34,7 @@ const USER: User = {
   full_name: 'Asha Verma',
   role: 'customer',
   status: 'active',
+  kyc_status: 'verified',
   created_at: '2026-10-31T10:00:00Z',
 };
 

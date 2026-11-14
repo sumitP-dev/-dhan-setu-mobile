@@ -12,6 +12,7 @@ import {
 import type { AppScreenProps } from '../../../../navigation/types';
 import { logout, useAppDispatch, useAppSelector } from '../../../../store';
 import { formatPhone } from '../../../../utils/format';
+import { KYC_STATUS } from '../../../kyc/status';
 import { styles } from './ProfileScreen.styles';
 
 const ROLE_LABELS = {
@@ -20,7 +21,7 @@ const ROLE_LABELS = {
   admin: 'Admin',
 };
 
-export function ProfileScreen(_: AppScreenProps<'Profile'>) {
+export function ProfileScreen({ navigation }: AppScreenProps<'Profile'>) {
   const user = useAppSelector(s => s.auth.user);
   const dispatch = useAppDispatch();
 
@@ -64,6 +65,19 @@ export function ProfileScreen(_: AppScreenProps<'Profile'>) {
           subtitle={user?.status === 'active' ? 'Verified' : 'Not verified'}
         />
       </Card>
+
+      {user ? (
+        <Card padded={false} style={styles.section}>
+          <ListRow
+            icon={KYC_STATUS[user.kyc_status].icon}
+            tone={KYC_STATUS[user.kyc_status].tone}
+            title="KYC"
+            subtitle={KYC_STATUS[user.kyc_status].label}
+            onPress={() => navigation.navigate('Kyc')}
+            testID="profile-kyc"
+          />
+        </Card>
+      ) : null}
 
       <Card padded={false} style={styles.logout}>
         <ListRow

@@ -9,5 +9,6 @@ export const styles = StyleSheet.create({
     marginBottom: spacing.xxl,
   },
   identityText: { gap: spacing.xs },
+  section: { marginTop: spacing.xl },
   logout: { marginTop: spacing.xl },
 });

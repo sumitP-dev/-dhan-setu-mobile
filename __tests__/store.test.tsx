@@ -30,6 +30,7 @@ const USER: User = {
   full_name: 'Asha Verma',
   role: 'customer',
   status: 'active',
+  kyc_status: 'verified',
   created_at: '2026-10-31T10:00:00Z',
 };
 const TOKENS: TokenPair = {
@@ -51,6 +52,7 @@ describe('auth state', () => {
       status: 'loading',
       user: null,
       hasOnboarded: false,
+      kycPromptSeen: true,
     });
   });
 
@@ -69,6 +71,8 @@ describe('auth state', () => {
       status: 'authenticated',
       user: USER,
       hasOnboarded: true,
+      // A new user on this device: the KYC intro is due.
+      kycPromptSeen: false,
     });
     expect(JSON.stringify(store.getState())).not.toContain('access');
     expect(await tokenStorage.getAccessToken()).toBe('access');
@@ -84,6 +88,7 @@ describe('auth state', () => {
       status: 'unauthenticated',
       user: null,
       hasOnboarded: true,
+      kycPromptSeen: true,
     });
     expect(await tokenStorage.getTokens()).toBeNull();
   });
@@ -105,7 +110,12 @@ describe('any component can read and update the store', () => {
   it('reads preloaded state and re-renders on dispatch', async () => {
     const { store } = await renderWithProviders(<Greeting />, {
       preloadedState: {
-        auth: { status: 'unauthenticated', user: null, hasOnboarded: true },
+        auth: {
+          status: 'unauthenticated',
+          user: null,
+          hasOnboarded: true,
+          kycPromptSeen: true,
+        },
       },
     });
     expect(screen.getByTestId('greeting')).toHaveTextContent('nobody');

@@ -19,6 +19,9 @@ export type AuthStackParamList = {
 };
 
 export type AppStackParamList = {
+  /** Shown once after sign-up (and to anyone who hasn't started KYC), with Skip. */
+  KycIntro: undefined;
+  Kyc: undefined;
   Home: undefined;
   Cards: undefined;
   Upi: undefined;

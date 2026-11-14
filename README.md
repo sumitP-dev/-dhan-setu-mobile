@@ -95,6 +95,23 @@ alias for your computer's localhost) and `http://localhost:8000/api/v1` on the i
 - Tests: `renderWithProviders(<Screen />, { preloadedState })` from `testing/` gives each test
   its own store.
 
+## KYC
+
+Cards, UPI and bill payments need a verified KYC (Aadhaar and PAN from DigiLocker, plus a
+live selfie, then approval by the Dhan Setu team in the admin portal).
+
+- **Intro** (`KycIntroScreen`): opens right after sign-up for anyone who hasn't started KYC,
+  with **Verify now** and **Skip for now**. It shows once per user on a device (remembered in
+  the keychain by `services/kycPromptStorage.ts`).
+- **Home banner**: until verified, shows the status (complete, finish, under review, or not
+  approved with the reason) and opens the KYC screen.
+- **KYC screen** (`KycScreen`): status, the three steps (done, next, to do) and the next
+  action. Pull to refresh.
+- **Profile**: a KYC row with the status.
+- `useKyc()` (`GET /kyc`) keeps `user.kyc_status` in the store in step with the server.
+- Next: the DigiLocker, PAN and selfie steps (KM2, KM3); until then the KYC screen's button
+  says they're coming. Locking Cards, UPI and Bills for unverified users is KM4.
+
 ## Payments (Razorpay checkout)
 
 Card payments use Razorpay's own checkout screen (`react-native-razorpay`), wrapped in

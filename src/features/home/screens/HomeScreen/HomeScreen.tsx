@@ -11,14 +11,23 @@ import {
   Screen,
 } from '../../../../components';
 import type { AppScreenProps } from '../../../../navigation/types';
+import { useRefreshOnFocus } from '../../../../utils/useRefreshOnFocus';
+import { KycBanner } from '../../../kyc/components';
+import { useKyc } from '../../../kyc/hooks';
 import { useAppSelector } from '../../../../store';
 import { colors, spacing } from '../../../../theme';
 import { firstName, greeting } from '../../../../utils/format';
 import { styles } from './HomeScreen.styles';
 
+const noop = () => {};
+
 export function HomeScreen({ navigation }: AppScreenProps<'Home'>) {
   const user = useAppSelector(s => s.auth.user);
   const name = user?.full_name ?? '';
+  // Verified is final, so only unverified users need the live status.
+  const verified = user?.kyc_status === 'verified';
+  const kyc = useKyc({ enabled: !verified });
+  useRefreshOnFocus(verified ? noop : kyc.refetch);
 
   return (
     <Screen edges={['top']} scroll testID="home-screen">
@@ -63,6 +72,13 @@ export function HomeScreen({ navigation }: AppScreenProps<'Home'>) {
           </AppText>
         </View>
       </View>
+
+      {user && !verified ? (
+        <KycBanner
+          kyc={kyc.data ?? { status: user.kyc_status, rejection_message: null }}
+          onPress={() => navigation.navigate('Kyc')}
+        />
+      ) : null}
 
       <AppText variant="overline" color="textMuted" style={styles.sectionTitle}>
         QUICK ACTIONS

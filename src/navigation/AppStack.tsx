@@ -4,17 +4,36 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { BbpsHomeScreen } from '../features/bbps/screens';
 import { CardsScreen } from '../features/cards/screens';
 import { HomeScreen } from '../features/home/screens';
+import { KycIntroScreen, KycScreen } from '../features/kyc/screens';
 import { ProfileScreen } from '../features/profile/screens';
 import { TransactionsScreen } from '../features/transactions/screens';
 import { UpiHomeScreen } from '../features/upi/screens';
+import { useAppSelector } from '../store';
 import { stackScreenOptions } from './theme';
 import type { AppStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
+/** Opens on the KYC intro for someone who hasn't started KYC or seen the intro yet. */
 export function AppStack() {
+  const showKycIntro = useAppSelector(
+    s => s.auth.user?.kyc_status === 'not_submitted' && !s.auth.kycPromptSeen,
+  );
   return (
-    <Stack.Navigator initialRouteName="Home" screenOptions={stackScreenOptions}>
+    <Stack.Navigator
+      initialRouteName={showKycIntro ? 'KycIntro' : 'Home'}
+      screenOptions={stackScreenOptions}
+    >
+      <Stack.Screen
+        name="KycIntro"
+        component={KycIntroScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Kyc"
+        component={KycScreen}
+        options={{ title: 'KYC' }}
+      />
       <Stack.Screen
         name="Home"
         component={HomeScreen}

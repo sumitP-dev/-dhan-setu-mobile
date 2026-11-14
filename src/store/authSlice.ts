@@ -7,6 +7,7 @@ import {
 import { queryClient } from '../api/queryClient';
 import type { TokenPair, User } from '../api/types';
 import { getMe, logout as logoutRequest } from '../features/auth/api';
+import { kycPromptStorage } from '../services/kycPromptStorage';
 import { onboardingStorage } from '../services/onboardingStorage';
 import { tokenStorage } from '../services/tokenStorage';
 import { getApiError } from '../utils/apiError';
@@ -18,12 +19,15 @@ export type AuthState = {
   user: User | null;
   /** Someone has registered or signed in on this device: skip the intro slides. */
   hasOnboarded: boolean;
+  /** This user has already seen the KYC intro on this device (started or skipped it). */
+  kycPromptSeen: boolean;
 };
 
 const initialState: AuthState = {
   status: 'loading',
   user: null,
   hasOnboarded: false,
+  kycPromptSeen: true,
 };
 
 /** Who is signed in. The navigator shows the auth or app screens based on `status`. */
@@ -38,12 +42,16 @@ const authSlice = createSlice({
     signedOut: state => {
       state.status = 'unauthenticated';
       state.user = null;
+      state.kycPromptSeen = initialState.kycPromptSeen;
     },
     userUpdated: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
     },
     onboardingLoaded: (state, action: PayloadAction<boolean>) => {
       state.hasOnboarded = action.payload;
+    },
+    kycPromptLoaded: (state, action: PayloadAction<boolean>) => {
+      state.kycPromptSeen = action.payload;
     },
     /** Back to the app-launch state (tests use it to simulate a restart). */
     reset: () => initialState,
@@ -52,6 +60,32 @@ const authSlice = createSlice({
 
 export const { signedIn, signedOut, userUpdated, reset } = authSlice.actions;
 export const authReducer = authSlice.reducer;
+
+/**
+ * Signs the user in on screen. Loads whether they've seen the KYC intro first, so the
+ * signed-in screens open on the right one.
+ */
+const enterApp = createAsyncThunk(
+  'auth/enterApp',
+  async (user: User, { dispatch }) => {
+    dispatch(
+      authSlice.actions.kycPromptLoaded(await kycPromptStorage.isSeen(user.id)),
+    );
+    dispatch(signedIn(user));
+  },
+);
+
+/** The KYC intro was started or skipped: don't show it again for this user here. */
+export const markKycPromptSeen = createAsyncThunk(
+  'auth/markKycPromptSeen',
+  async (_: void, { dispatch, getState }) => {
+    const user = (getState() as { auth: AuthState }).auth.user;
+    dispatch(authSlice.actions.kycPromptLoaded(true));
+    if (user) {
+      await kycPromptStorage.markSeen(user.id);
+    }
+  },
+);
 
 export const completeOnboarding = createAsyncThunk(
   'auth/completeOnboarding',
@@ -79,7 +113,8 @@ export const bootstrap = createAsyncThunk(
       await dispatch(completeOnboarding());
     }
     try {
-      dispatch(signedIn(await getMe()));
+      const user = await getMe();
+      await dispatch(enterApp(user));
     } catch (error) {
       // Only a rejected session (401) deletes the tokens. If the server was just
       // unreachable, they are kept so the next launch can restore the session.
@@ -99,7 +134,7 @@ export const setSession = createAsyncThunk(
       refreshToken: tokens.refresh_token,
     });
     await dispatch(completeOnboarding());
-    dispatch(signedIn(user));
+    await dispatch(enterApp(user));
   },
 );
 
