@@ -4,7 +4,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { BbpsHomeScreen } from '../features/bbps/screens';
 import { CardsScreen } from '../features/cards/screens';
 import { HomeScreen } from '../features/home/screens';
-import { KycIntroScreen, KycScreen } from '../features/kyc/screens';
+import {
+  KycDetailsScreen,
+  KycDigiLockerScreen,
+  KycIntroScreen,
+  KycPanScreen,
+  KycScreen,
+} from '../features/kyc/screens';
 import { ProfileScreen } from '../features/profile/screens';
 import { TransactionsScreen } from '../features/transactions/screens';
 import { UpiHomeScreen } from '../features/upi/screens';
@@ -33,6 +39,21 @@ export function AppStack() {
         name="Kyc"
         component={KycScreen}
         options={{ title: 'KYC' }}
+      />
+      <Stack.Screen
+        name="KycDigiLocker"
+        component={KycDigiLockerScreen}
+        options={{ title: 'DigiLocker' }}
+      />
+      <Stack.Screen
+        name="KycDetails"
+        component={KycDetailsScreen}
+        options={{ title: 'Your details' }}
+      />
+      <Stack.Screen
+        name="KycPan"
+        component={KycPanScreen}
+        options={{ title: 'PAN' }}
       />
       <Stack.Screen
         name="Home"

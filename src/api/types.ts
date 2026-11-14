@@ -75,5 +75,24 @@ export type KycRead = {
   rejection_message?: string | null;
 };
 
+export type DigiLockerStatus =
+  | 'pending' // the user hasn't finished in DigiLocker yet
+  | 'completed'
+  | 'denied' // the user refused to share
+  | 'expired'
+  | 'failed';
+
+/** POST /kyc/digilocker, GET /kyc/digilocker/{id} */
+export type DigiLockerSession = {
+  id: string;
+  status: DigiLockerStatus;
+  /** Open in the browser: the user logs in to DigiLocker and allows sharing. */
+  consent_url: string;
+  expires_at: string;
+  failure_reason: string | null;
+  /** Safe to show. */
+  failure_message: string | null;
+};
+
 /** Every backend error: {"error": {"code": "...", "message": "..."}} */
 export type ApiErrorBody = { error: { code: string; message: string } };

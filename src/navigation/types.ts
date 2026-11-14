@@ -22,6 +22,10 @@ export type AppStackParamList = {
   /** Shown once after sign-up (and to anyone who hasn't started KYC), with Skip. */
   KycIntro: undefined;
   Kyc: undefined;
+  /** Opens DigiLocker in the browser; back through dhansetu://kyc/digilocker. */
+  KycDigiLocker: undefined;
+  KycDetails: undefined;
+  KycPan: undefined;
   Home: undefined;
   Cards: undefined;
   Upi: undefined;

@@ -109,8 +109,27 @@ live selfie, then approval by the Dhan Setu team in the admin portal).
   action. Pull to refresh.
 - **Profile**: a KYC row with the status.
 - `useKyc()` (`GET /kyc`) keeps `user.kyc_status` in the store in step with the server.
-- Next: the DigiLocker, PAN and selfie steps (KM2, KM3); until then the KYC screen's button
-  says they're coming. Locking Cards, UPI and Bills for unverified users is KM4.
+- **DigiLocker** (`KycDigiLockerScreen`): says what's shared, then `POST /kyc/digilocker` and
+  opens `consent_url` in the browser. The backend sends the browser back to
+  `dhansetu://kyc/digilocker?status=...` (registered in `ios/DhanSetu/Info.plist` and
+  `AndroidManifest.xml`). The link, or switching back to the app, only triggers a check:
+  the app asks `GET /kyc/digilocker/{id}` how it went and never trusts the link's status.
+  **I've finished** checks on demand; a refusal or timeout shows the reason with **Try again**.
+- **Your details** (`KycDetailsScreen`): what DigiLocker shared (Aadhaar and PAN masked) to
+  check, and the next step. If the PAN was missing or didn't match it says why and offers
+  **Enter PAN**.
+- **PAN** (`KycPanScreen`): checks the format like the backend (`schemas.ts`: a personal PAN,
+  4th letter P), then `POST /kyc/pan`. A mismatch shows the server's reason; a match goes
+  back to the details.
+- Next: the live selfie and submit (KM3); until then **Continue** after PAN says it's coming.
+  Locking Cards, UPI and Bills for unverified users is KM4.
+
+Trying it locally: the backend's fake provider (`KYC_PROVIDER=fake`, `DEBUG=true`) opens a
+stand-in DigiLocker page in Safari with Allow / Allow without PAN / Deny. iOS then asks
+"Open in Dhan Setu?". The fake's PAN is `ABCPV1234F`. After changing `Info.plist` or the
+manifest, rebuild the app (`npm run ios` / `npm run android`); a Metro reload isn't enough.
+On the Android emulator, first run `adb reverse tcp:8000 tcp:8000`: the DigiLocker page's
+address is `localhost:8000`, which inside the emulator means the emulator itself.
 
 ## Payments (Razorpay checkout)
 

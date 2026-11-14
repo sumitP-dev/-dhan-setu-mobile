@@ -37,3 +37,28 @@ export function greeting(date: Date = new Date()): string {
   }
   return 'Good evening';
 }
+
+const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+/** "1994-05-17" -> "17 May 1994". A calendar date, so no time zone shifts it. */
+export function formatCalendarDate(isoDate: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  const month = match ? MONTHS[Number(match[2]) - 1] : undefined;
+  if (!match || !month) {
+    return isoDate;
+  }
+  return `${Number(match[3])} ${month} ${match[1]}`;
+}

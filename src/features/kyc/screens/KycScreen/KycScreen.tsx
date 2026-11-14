@@ -8,6 +8,7 @@ import {
   EmptyState,
   Icon,
   IconBadge,
+  ListRow,
   LoadingView,
   Screen,
 } from '../../../../components';
@@ -16,7 +17,7 @@ import type { AppScreenProps } from '../../../../navigation/types';
 import { colors } from '../../../../theme';
 import { getApiError } from '../../../../utils/apiError';
 import { useRefreshOnFocus } from '../../../../utils/useRefreshOnFocus';
-import { openKycStep } from '../../flow';
+import { useOpenKycStep } from '../../flow';
 import { useKyc } from '../../hooks';
 import {
   KYC_STATUS,
@@ -96,8 +97,9 @@ function Steps({ steps }: { steps: KycStep[] }) {
 }
 
 /** KYC status, the three steps and what to do next. */
-export function KycScreen(_: AppScreenProps<'Kyc'>) {
+export function KycScreen({ navigation }: AppScreenProps<'Kyc'>) {
   const kyc = useKyc();
+  const openStep = useOpenKycStep();
   useRefreshOnFocus(kyc.refetch);
 
   if (kyc.isPending) {
@@ -128,7 +130,7 @@ export function KycScreen(_: AppScreenProps<'Kyc'>) {
         action ? (
           <AppButton
             title={action}
-            onPress={() => openKycStep(data.next_step ?? 'digilocker')}
+            onPress={() => openStep(data.next_step ?? 'digilocker')}
             fullWidth
             size="lg"
           />
@@ -156,6 +158,17 @@ export function KycScreen(_: AppScreenProps<'Kyc'>) {
           STEPS
         </AppText>
         <Steps steps={kycSteps(data)} />
+        {data.details && data.status === 'in_progress' ? (
+          <Card padded={false} style={styles.detailsRow}>
+            <ListRow
+              title="Your details"
+              subtitle="From your Aadhaar and PAN"
+              icon="account-details-outline"
+              onPress={() => navigation.navigate('KycDetails')}
+              testID="kyc-details-row"
+            />
+          </Card>
+        ) : null}
         <View style={styles.privacy}>
           <Icon name="lock-outline" size={16} color={colors.textMuted} />
           <AppText

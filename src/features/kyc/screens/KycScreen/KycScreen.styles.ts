@@ -18,6 +18,7 @@ export const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   stepText: { flex: 1, gap: spacing.xxs },
+  detailsRow: { marginTop: spacing.md },
   privacy: {
     flexDirection: 'row',
     alignItems: 'flex-start',

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Alert } from 'react-native';
 import {
   act,
   render,
@@ -153,7 +152,6 @@ describe('KYC status', () => {
   });
 
   it('Home banner opens the KYC screen with the three steps', async () => {
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const user = userEvent.setup();
     await launch(USER);
 
@@ -168,9 +166,11 @@ describe('KYC status', () => {
       within(kyc).getByLabelText('Step 3, Live selfie: To do'),
     ).toBeOnTheScreen();
 
-    // The DigiLocker step itself arrives in KM2.
     await user.press(screen.getByRole('button', { name: 'Start KYC' }));
-    expect(alert).toHaveBeenCalledWith('Coming soon', expect.any(String));
+    expect(
+      await screen.findByTestId('kyc-digilocker-screen'),
+    ).toBeOnTheScreen();
+    expect(currentRoute()).toBe('KycDigiLocker');
   });
 
   it('part-way through: done steps are ticked and the button continues', async () => {

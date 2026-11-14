@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAppDispatch, useAppSelector, userUpdated } from '../../store';
-import { getKyc } from './api';
+import { getDigiLocker, getKyc, startDigiLocker, submitPan } from './api';
 
 export const kycQueryKey = ['kyc'] as const;
 
@@ -24,4 +24,21 @@ export function useKyc({ enabled = true }: { enabled?: boolean } = {}) {
   }, [dispatch, user, serverStatus]);
 
   return query;
+}
+
+export function useStartDigiLocker() {
+  return useMutation({ mutationFn: () => startDigiLocker() });
+}
+
+/** Asks the server how the DigiLocker session went (never trusts the return link). */
+export function useCheckDigiLocker() {
+  return useMutation({ mutationFn: (id: string) => getDigiLocker(id) });
+}
+
+export function useSubmitPan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (pan: string) => submitPan(pan),
+    onSuccess: kyc => queryClient.setQueryData(kycQueryKey, kyc),
+  });
 }
