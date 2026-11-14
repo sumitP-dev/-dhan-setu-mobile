@@ -9,7 +9,9 @@ import {
   KycDigiLockerScreen,
   KycIntroScreen,
   KycPanScreen,
+  KycReviewScreen,
   KycScreen,
+  KycSelfieScreen,
 } from '../features/kyc/screens';
 import { ProfileScreen } from '../features/profile/screens';
 import { TransactionsScreen } from '../features/transactions/screens';
@@ -54,6 +56,16 @@ export function AppStack() {
         name="KycPan"
         component={KycPanScreen}
         options={{ title: 'PAN' }}
+      />
+      <Stack.Screen
+        name="KycSelfie"
+        component={KycSelfieScreen}
+        options={{ title: 'Selfie' }}
+      />
+      <Stack.Screen
+        name="KycReview"
+        component={KycReviewScreen}
+        options={{ title: 'Submit KYC' }}
       />
       <Stack.Screen
         name="Home"

@@ -1,5 +1,10 @@
 import { apiClient } from '../../api/client';
-import type { DigiLockerSession, KycRead } from '../../api/types';
+import type {
+  DigiLockerSession,
+  KycRead,
+  SelfieSession,
+  SelfieSessionStart,
+} from '../../api/types';
 
 /** KYC endpoints (backend: app/modules/kyc/router.py). */
 
@@ -26,5 +31,25 @@ export async function getDigiLocker(id: string): Promise<DigiLockerSession> {
 /** For a PAN that wasn't in DigiLocker (or didn't match). Returns the updated KYC. */
 export async function submitPan(pan: string): Promise<KycRead> {
   const { data } = await apiClient.post<KycRead>('/kyc/pan', { pan });
+  return data;
+}
+
+/** Starts a selfie session (or returns the open one) with a token for the selfie SDK. */
+export async function startSelfie(): Promise<SelfieSessionStart> {
+  const { data } = await apiClient.post<SelfieSessionStart>('/kyc/selfie');
+  return data;
+}
+
+/** The selfie result; the server fetches it from the provider itself. */
+export async function getSelfie(id: string): Promise<SelfieSession> {
+  const { data } = await apiClient.get<SelfieSession>(
+    `/kyc/selfie/${encodeURIComponent(id)}`,
+  );
+  return data;
+}
+
+/** Sends the KYC for review once every step is done. */
+export async function submitKyc(): Promise<KycRead> {
+  const { data } = await apiClient.post<KycRead>('/kyc/submit');
   return data;
 }

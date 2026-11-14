@@ -94,5 +94,23 @@ export type DigiLockerSession = {
   failure_message: string | null;
 };
 
+export type SelfieStatus = 'pending' | 'completed' | 'failed' | 'expired';
+
+/** GET /kyc/selfie/{id} */
+export type SelfieSession = {
+  id: string;
+  status: SelfieStatus;
+  failure_reason: string | null;
+  /** Safe to show. */
+  failure_message: string | null;
+  expires_at: string;
+};
+
+/** POST /kyc/selfie */
+export type SelfieSessionStart = SelfieSession & {
+  /** Starts the provider's selfie SDK. Short-lived; keep it in memory only. */
+  sdk_token: string;
+};
+
 /** Every backend error: {"error": {"code": "...", "message": "..."}} */
 export type ApiErrorBody = { error: { code: string; message: string } };

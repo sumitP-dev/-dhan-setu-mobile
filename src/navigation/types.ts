@@ -26,6 +26,9 @@ export type AppStackParamList = {
   KycDigiLocker: undefined;
   KycDetails: undefined;
   KycPan: undefined;
+  KycSelfie: undefined;
+  /** Review and submit once every step is done. */
+  KycReview: undefined;
   Home: undefined;
   Cards: undefined;
   Upi: undefined;

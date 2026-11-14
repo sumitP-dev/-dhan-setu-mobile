@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, AppState, Linking } from 'react-native';
+import { AppState, Linking } from 'react-native';
 import {
   act,
   render,
@@ -189,7 +189,6 @@ beforeEach(async () => {
 
 describe('DigiLocker', () => {
   it('explains what is shared, opens DigiLocker, and on return shows the details', async () => {
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const user = userEvent.setup();
     await openKyc();
     await user.press(screen.getByRole('button', { name: 'Start KYC' }));
@@ -230,9 +229,9 @@ describe('DigiLocker', () => {
     // DigiLocker is replaced, so back goes to the KYC screen.
     expect(routeNames()).toEqual(['Home', 'Kyc', 'KycDetails']);
 
-    // The selfie step arrives in KM3.
+    // Next: the selfie.
     await user.press(screen.getByRole('button', { name: 'Continue' }));
-    expect(alert).toHaveBeenCalledWith('Coming soon', expect.any(String));
+    expect(await screen.findByTestId('kyc-selfie-screen')).toBeOnTheScreen();
   });
 
   it('trusts the server, not the link: still pending means keep waiting', async () => {

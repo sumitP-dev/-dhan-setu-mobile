@@ -2,7 +2,15 @@ import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAppDispatch, useAppSelector, userUpdated } from '../../store';
-import { getDigiLocker, getKyc, startDigiLocker, submitPan } from './api';
+import {
+  getDigiLocker,
+  getKyc,
+  getSelfie,
+  startDigiLocker,
+  startSelfie,
+  submitKyc,
+  submitPan,
+} from './api';
 
 export const kycQueryKey = ['kyc'] as const;
 
@@ -39,6 +47,23 @@ export function useSubmitPan() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (pan: string) => submitPan(pan),
+    onSuccess: kyc => queryClient.setQueryData(kycQueryKey, kyc),
+  });
+}
+
+export function useStartSelfie() {
+  return useMutation({ mutationFn: () => startSelfie() });
+}
+
+/** Asks the server for the selfie result (the app never reports it). */
+export function useCheckSelfie() {
+  return useMutation({ mutationFn: (id: string) => getSelfie(id) });
+}
+
+export function useSubmitKyc() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => submitKyc(),
     onSuccess: kyc => queryClient.setQueryData(kycQueryKey, kyc),
   });
 }

@@ -121,12 +121,21 @@ live selfie, then approval by the Dhan Setu team in the admin portal).
 - **PAN** (`KycPanScreen`): checks the format like the backend (`schemas.ts`: a personal PAN,
   4th letter P), then `POST /kyc/pan`. A mismatch shows the server's reason; a match goes
   back to the details.
-- Next: the live selfie and submit (KM3); until then **Continue** after PAN says it's coming.
-  Locking Cards, UPI and Bills for unverified users is KM4.
+- **Selfie** (`KycSelfieScreen`): tips, then `POST /kyc/selfie` and the selfie SDK with its
+  `sdk_token` (kept in memory only). When the SDK closes, the app asks
+  `GET /kyc/selfie/{id}` (a few times, a second apart, then **Check again**). It never
+  decides itself whether the selfie passed. A failed check shows the server's reason.
+- **Selfie SDK** (`selfieSdk/`): the KYC provider (and so its native SDK) isn't chosen yet.
+  `useSelfieSdk()` is the one place it plugs in. Development builds show a stand-in sheet
+  ("Live selfie that matches", "Doesn't match", "Not live", "No face found") that reports
+  to the backend's fake provider. Release builds say the step isn't available yet.
+- **Review and submit** (`KycReviewScreen`): the three steps ticked, a confirmation
+  checkbox, then `POST /kyc/submit`. Back on the KYC screen the status is "under review".
+- Next: locking Cards, UPI and Bills for users who aren't verified (KM4).
 
 Trying it locally: the backend's fake provider (`KYC_PROVIDER=fake`, `DEBUG=true`) opens a
 stand-in DigiLocker page in Safari with Allow / Allow without PAN / Deny. iOS then asks
-"Open in Dhan Setu?". The fake's PAN is `ABCPV1234F`. After changing `Info.plist` or the
+"Open in Dhan Setu?". The page shows a test PAN to type in if you chose Allow without PAN. After changing `Info.plist` or the
 manifest, rebuild the app (`npm run ios` / `npm run android`); a Metro reload isn't enough.
 On the Android emulator, first run `adb reverse tcp:8000 tcp:8000`: the DigiLocker page's
 address is `localhost:8000`, which inside the emulator means the emulator itself.
