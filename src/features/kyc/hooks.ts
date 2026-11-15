@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { setKycRequiredHandler } from '../../api/client';
 import { useAppDispatch, useAppSelector, userUpdated } from '../../store';
 import {
   getDigiLocker,
@@ -66,4 +67,36 @@ export function useSubmitKyc() {
     mutationFn: () => submitKyc(),
     onSuccess: kyc => queryClient.setQueryData(kycQueryKey, kyc),
   });
+}
+
+/**
+ * When the server refuses a request with "kyc_required" (e.g. the app still thought
+ * the user was verified), re-reads the KYC so the store, and the gates, catch up.
+ * Mounted once for signed-in users (AppStack).
+ */
+export function useKycRequiredSync() {
+  const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(s => s.auth.user);
+  const latestUser = useRef(user);
+  useEffect(() => {
+    latestUser.current = user;
+  }, [user]);
+
+  useEffect(() => {
+    setKycRequiredHandler(() => {
+      queryClient
+        .fetchQuery({ queryKey: kycQueryKey, queryFn: getKyc, staleTime: 0 })
+        .then(kyc => {
+          const current = latestUser.current;
+          if (current && current.kyc_status !== kyc.status) {
+            dispatch(userUpdated({ ...current, kyc_status: kyc.status }));
+          }
+        })
+        .catch(() => {
+          // The next screen that reads the KYC will try again.
+        });
+    });
+    return () => setKycRequiredHandler(() => {});
+  }, [dispatch, queryClient]);
 }

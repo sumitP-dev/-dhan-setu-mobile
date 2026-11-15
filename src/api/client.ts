@@ -12,6 +12,8 @@ import type { TokenPair } from './types';
  *   same time), then retries the request. If the refresh is rejected, the session is over:
  *   tokens are cleared and the app returns to the signed-out screens.
  * - /auth/* calls are never refreshed (a 401 there means wrong password, bad token, etc.).
+ * - A 403 "kyc_required" means the server doesn't count the user as KYC verified; the app
+ *   is told, so it re-reads the status and locks the feature (the request still fails).
  */
 export const apiClient = axios.create({
   baseURL: env.apiBaseUrl,
@@ -26,6 +28,21 @@ let onSessionExpired: () => void = () => {};
 /** Called by the auth store so the client can sign the user out without importing it. */
 export function setSessionExpiredHandler(handler: () => void) {
   onSessionExpired = handler;
+}
+
+let onKycRequired: () => void = () => {};
+
+/** Called when the server refuses a request because KYC isn't verified. */
+export function setKycRequiredHandler(handler: () => void) {
+  onKycRequired = handler;
+}
+
+function errorCode(error: AxiosError): string | undefined {
+  const data = error.response?.data as
+    | { error?: { code?: unknown } }
+    | undefined;
+  const code = data?.error?.code;
+  return typeof code === 'string' ? code : undefined;
 }
 
 let refreshInFlight: Promise<string> | null = null;
@@ -77,6 +94,11 @@ apiClient.interceptors.request.use(async config => {
 apiClient.interceptors.response.use(undefined, async (error: AxiosError) => {
   const config = error.config as RetryableConfig | undefined;
   const isAuthCall = config?.url?.startsWith('/auth/') ?? false;
+
+  if (error.response?.status === 403 && errorCode(error) === 'kyc_required') {
+    onKycRequired();
+    throw error;
+  }
 
   if (
     error.response?.status !== 401 ||

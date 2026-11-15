@@ -90,6 +90,7 @@ export function HomeScreen({ navigation }: AppScreenProps<'Home'>) {
             title="Cards"
             subtitle="Saved cards and card payments"
             onPress={() => navigation.navigate('Cards')}
+            locked={!verified}
             testID="tile-cards"
           />
           <ActionTile
@@ -98,6 +99,7 @@ export function HomeScreen({ navigation }: AppScreenProps<'Home'>) {
             subtitle="Pay any UPI ID instantly"
             tone="accent"
             onPress={() => navigation.navigate('Upi')}
+            locked={!verified}
             testID="tile-upi"
           />
         </View>
@@ -108,6 +110,7 @@ export function HomeScreen({ navigation }: AppScreenProps<'Home'>) {
             subtitle="Electricity, mobile, DTH and more"
             tone="warning"
             onPress={() => navigation.navigate('Bbps')}
+            locked={!verified}
             testID="tile-bbps"
           />
           <ActionTile

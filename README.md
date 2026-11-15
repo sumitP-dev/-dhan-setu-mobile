@@ -131,7 +131,13 @@ live selfie, then approval by the Dhan Setu team in the admin portal).
   to the backend's fake provider. Release builds say the step isn't available yet.
 - **Review and submit** (`KycReviewScreen`): the three steps ticked, a confirmation
   checkbox, then `POST /kyc/submit`. Back on the KYC screen the status is "under review".
-- Next: locking Cards, UPI and Bills for users who aren't verified (KM4).
+- **Locked features** (`KycGate`, `withKycGate`): Cards, UPI and Bills are wrapped in
+  `AppStack`. Unverified users see why (start, finish, under review, or the rejection
+  reason) and a button to KYC; the Home tiles show a lock. The gate re-reads the KYC, so an
+  approval unlocks the feature without a restart. Transactions stay open.
+- The backend enforces the same rule. If it answers `403 kyc_required` (e.g. the app still
+  thought the user was verified), the API client tells `useKycRequiredSync()`, which re-reads
+  the KYC and updates the store, so the feature locks.
 
 Trying it locally: the backend's fake provider (`KYC_PROVIDER=fake`, `DEBUG=true`) opens a
 stand-in DigiLocker page in Safari with Allow / Allow without PAN / Deny. iOS then asks

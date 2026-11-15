@@ -4,7 +4,11 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios';
 
-import { apiClient, setSessionExpiredHandler } from '../src/api/client';
+import {
+  apiClient,
+  setKycRequiredHandler,
+  setSessionExpiredHandler,
+} from '../src/api/client';
 import { tokenStorage } from '../src/services/tokenStorage';
 
 /** A fake server: each test decides how it answers. */
@@ -149,4 +153,31 @@ it('never refreshes for /auth/* calls', async () => {
 
   expect(calls.map(c => c.url)).toEqual(['/auth/login']);
   expect(sessionExpired).not.toHaveBeenCalled();
+});
+
+describe('kyc_required', () => {
+  const kycRequired = jest.fn();
+  beforeAll(() => setKycRequiredHandler(kycRequired));
+  beforeEach(() => kycRequired.mockClear());
+
+  it('tells the app when the server says KYC is needed, and still fails', async () => {
+    handler = () => ({
+      status: 403,
+      data: { error: { code: 'kyc_required', message: 'Complete your KYC.' } },
+    });
+    await expect(apiClient.get('/cards')).rejects.toMatchObject({
+      response: { status: 403 },
+    });
+    expect(kycRequired).toHaveBeenCalledTimes(1);
+    expect(sessionExpired).not.toHaveBeenCalled();
+  });
+
+  it('ignores other 403s', async () => {
+    handler = () => ({
+      status: 403,
+      data: { error: { code: 'forbidden', message: 'No.' } },
+    });
+    await expect(apiClient.get('/cards')).rejects.toBeTruthy();
+    expect(kycRequired).not.toHaveBeenCalled();
+  });
 });

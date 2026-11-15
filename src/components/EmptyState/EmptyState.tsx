@@ -28,7 +28,7 @@ export function EmptyState({
     <View style={styles.container}>
       <IconBadge icon={icon} tone={tone} size={72} />
       <View style={styles.text}>
-        <AppText variant="h3" align="center">
+        <AppText variant="h3" align="center" accessibilityRole="header">
           {title}
         </AppText>
         <AppText variant="body" color="textSecondary" align="center">
@@ -36,12 +36,15 @@ export function EmptyState({
         </AppText>
       </View>
       {actionTitle && onAction ? (
-        <AppButton
-          title={actionTitle}
-          onPress={onAction}
-          variant="secondary"
-          fullWidth={false}
-        />
+        // A wrapper, because auto-width buttons align to the start on their own.
+        <View>
+          <AppButton
+            title={actionTitle}
+            onPress={onAction}
+            variant="secondary"
+            fullWidth={false}
+          />
+        </View>
       ) : null}
     </View>
   );

@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { BbpsHomeScreen } from '../features/bbps/screens';
 import { CardsScreen } from '../features/cards/screens';
 import { HomeScreen } from '../features/home/screens';
+import { withKycGate } from '../features/kyc/components';
+import { useKycRequiredSync } from '../features/kyc/hooks';
 import {
   KycDetailsScreen,
   KycDigiLockerScreen,
@@ -22,8 +24,14 @@ import type { AppStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
+// Only for KYC-verified users (the backend refuses these to anyone else).
+const GatedCardsScreen = withKycGate(CardsScreen, 'cards');
+const GatedUpiHomeScreen = withKycGate(UpiHomeScreen, 'upi');
+const GatedBbpsHomeScreen = withKycGate(BbpsHomeScreen, 'bills');
+
 /** Opens on the KYC intro for someone who hasn't started KYC or seen the intro yet. */
 export function AppStack() {
+  useKycRequiredSync();
   const showKycIntro = useAppSelector(
     s => s.auth.user?.kyc_status === 'not_submitted' && !s.auth.kycPromptSeen,
   );
@@ -74,17 +82,17 @@ export function AppStack() {
       />
       <Stack.Screen
         name="Cards"
-        component={CardsScreen}
+        component={GatedCardsScreen}
         options={{ title: 'Cards' }}
       />
       <Stack.Screen
         name="Upi"
-        component={UpiHomeScreen}
+        component={GatedUpiHomeScreen}
         options={{ title: 'UPI' }}
       />
       <Stack.Screen
         name="Bbps"
-        component={BbpsHomeScreen}
+        component={GatedBbpsHomeScreen}
         options={{ title: 'Pay bills' }}
       />
       <Stack.Screen
